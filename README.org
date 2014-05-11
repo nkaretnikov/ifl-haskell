@@ -1,0 +1,19 @@
+Copyright 2014 Nikita Karetnikov <nikita@karetnikov.org>
+
+  Copying and distribution of this file, with or without modification,
+  are permitted in any medium without royalty provided the copyright
+  notice and this notice are preserved.
+
+* About
+
+This repository contains a [[https://www.haskell.org][Haskell]] version of the code from
+[[https://research.microsoft.com/en-us/um/people/simonpj/Papers/pj-lester-book][“Implementing Functional Languages: a tutorial”]] by Simon L Peyton
+Jones and David R Lester as well as solutions to the exercises.  Note
+that this implementation may differ from the one presented in the
+book.
+
+* Acknowledgements
+
+Tremendous thanks to Simon Peyton Jones for letting me release this
+code under a [[https://www.gnu.org/philosophy/free-sw][free license]] of my choice, that is, the GNU General
+Public License version 3 with the “any later version” clause.
