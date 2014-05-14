@@ -25,6 +25,16 @@ tests = TestList $
   [ TestLabel "Exercise 1.6: 'ELet' indentation" $
       "let\n x = 42\nin x" ~=?
       (ppr $ ELet nonRecursive [("x", ENum 42)] (EVar "x"))
+  , TestLabel "Exercise 1.8: Infix operator application" $
+      "(x + y) > (p * (length xs))" ~=?
+      (ppr $ EAp (EAp (EVar ">")
+                      (EAp (EAp (EVar "+")
+                                (EVar "x"))
+                           (EVar "y")))
+                 (EAp (EAp (EVar "*")
+                           (EVar "p"))
+                      (EAp (EVar "length")
+                           (EVar "xs"))))
   ]
     where
       ppr = iDisplay . pprExpr

@@ -82,15 +82,19 @@ iInterleave :: Iseq -> [Iseq] -> Iseq
 iInterleave _   []     = iNil
 iInterleave sep (x:xs) = x `iAppend` (iConcat $ map (iAppend sep) xs)
 
+pprAExpr e
+  | isAtomicExpr e = pprExpr e
+  | otherwise      = (iStr "(") `iAppend` (pprExpr e) `iAppend` (iStr ")")
+
 -- | Pretty-print an expression.
 pprExpr :: CoreExpr -> Iseq
-pprExpr (EVar v)    = iStr v
-pprExpr (ENum n)    = iStr $ show n
-pprExpr (EAp e1 e2) = (pprExpr e1) `iAppend` (iStr " ") `iAppend` (pprAExpr e2)
-  where
-    pprAExpr e
-      | isAtomicExpr e = pprExpr e
-      | otherwise      = (iStr "(") `iAppend` (pprExpr e) `iAppend` (iStr ")")
+pprExpr (EVar v) = iStr v
+pprExpr (ENum n) = iStr $ show n
+pprExpr (EAp (EAp (EVar o) e1) e2)
+  | any (== o) ["*", "/", "+", "-", "==", "~=", ">", ">=", "<", "<=", "&", "|"]
+    = iConcat [pprAExpr e1, iStr " ", iStr o, iStr " ", pprAExpr e2]
+pprExpr (EAp e1 e2)
+  = (pprExpr e1) `iAppend` (iStr " ") `iAppend` (pprAExpr e2)
 pprExpr (ELet isrec defns expr)
   = iConcat [ iStr keyword, iNewline
             , iStr " ", iIndent (mapSep pprDefn defns), iNewline
