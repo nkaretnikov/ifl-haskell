@@ -25,8 +25,29 @@ tests = TestList $
   [ TestLabel "Exercise 1.6: 'ELet' indentation" $
       "let\n x = 42\nin x" ~=?
       (ppr $ ELet nonRecursive [("x", ENum 42)] (EVar "x"))
+  , TestLabel "Precedence: parentheses" $
+      "(x + y) * z" ~=?
+      (ppr $ EAp (EAp (EVar "*")
+                      (EAp (EAp (EVar "+")
+                                (EVar "x"))
+                           (EVar "y")))
+                 (EVar "z"))
+  , TestLabel "Precedence: no parentheses" $
+      "x + y * z" ~=?
+      (ppr $ EAp (EAp (EVar "+")
+                      (EVar "x"))
+                 (EAp (EAp (EVar "*")
+                           (EVar "y"))
+                      (EVar "z")))
+  , TestLabel "Precedence: prefix function application" $
+      "x + f y z" ~=?
+      (ppr $ EAp (EAp (EVar "+")
+                      (EVar "x"))
+                 (EAp (EAp (EVar "f")
+                           (EVar "y"))
+                      (EVar "z")))
   , TestLabel "Exercise 1.8: Infix operator application" $
-      "(x + y) > (p * (length xs))" ~=?
+      "x + y > p * length xs" ~=?
       (ppr $ EAp (EAp (EVar ">")
                       (EAp (EAp (EVar "+")
                                 (EVar "x"))
@@ -37,4 +58,4 @@ tests = TestList $
                            (EVar "xs"))))
   ]
     where
-      ppr = iDisplay . pprExpr
+      ppr = iDisplay . flip pprExpr 0

@@ -82,23 +82,33 @@ iInterleave :: Iseq -> [Iseq] -> Iseq
 iInterleave _   []     = iNil
 iInterleave sep (x:xs) = x `iAppend` (iConcat $ map (iAppend sep) xs)
 
-pprAExpr e
-  | isAtomicExpr e = pprExpr e
-  | otherwise      = (iStr "(") `iAppend` (pprExpr e) `iAppend` (iStr ")")
+type Precedence = Int
 
 -- | Pretty-print an expression.
-pprExpr :: CoreExpr -> Iseq
-pprExpr (EVar v) = iStr v
-pprExpr (ENum n) = iStr $ show n
-pprExpr (EAp (EAp (EVar o) e1) e2)
+pprExpr :: CoreExpr -> Precedence -> Iseq
+pprExpr (EVar v) _ = iStr v
+pprExpr (ENum n) _ = iStr $ show n
+pprExpr (EAp (EAp (EVar o) e1) e2) prec
   | any (== o) ["*", "/", "+", "-", "==", "~=", ">", ">=", "<", "<=", "&", "|"]
-    = iConcat [pprAExpr e1, iStr " ", iStr o, iStr " ", pprAExpr e2]
-pprExpr (EAp e1 e2)
-  = (pprExpr e1) `iAppend` (iStr " ") `iAppend` (pprAExpr e2)
-pprExpr (ELet isrec defns expr)
+    = let o' = iConcat [iStr " ", iStr o, iStr " "]
+          os = [ ("*",5), ("+",4), ("==",3), ("~=",3), (">",3), (">=",3)
+               , ("<",3), ("<=",3), ("&",2), ("|",1)
+               ]
+      in case lookup o os
+         of Nothing ->
+              iConcat [pprExpr e1 0, o', pprExpr e2 0]
+            Just prec' ->
+              if prec' >= prec
+              then iConcat [pprExpr e1 prec', o', pprExpr e2 prec']
+              else iConcat [ iStr "(", pprExpr e1 prec', o'
+                           , pprExpr e2 prec', iStr ")"
+                           ]
+pprExpr (EAp e1 e2) prec
+  = (pprExpr e1 prec) `iAppend` (iStr " ") `iAppend` (pprExpr e2 prec)
+pprExpr (ELet isrec defns expr) prec
   = iConcat [ iStr keyword, iNewline
             , iStr " ", iIndent (mapSep pprDefn defns), iNewline
-            , iStr "in ", pprExpr expr
+            , iStr "in ", pprExpr expr prec
             ]
     where
       keyword | isrec     = "letrec"
@@ -106,10 +116,10 @@ pprExpr (ELet isrec defns expr)
 
       pprDefn :: (Name, CoreExpr) -> Iseq
       pprDefn (name, expr)
-        = iConcat [iStr name, iStr " = ", pprExpr expr]
+        = iConcat [iStr name, iStr " = ", pprExpr expr prec]
 
-pprExpr (ECase expr alts)
-  = iConcat [ iStr "case ", pprExpr expr, iStr " of"
+pprExpr (ECase expr alts) prec
+  = iConcat [ iStr "case ", pprExpr expr prec, iStr " of"
             , iNewline, iStr " ", iIndent (mapSep pprAlt alts)
             ]
   where
@@ -117,12 +127,12 @@ pprExpr (ECase expr alts)
     pprAlt (tag, vars, expr) =
       iConcat [ iStr $ show tag
               , iStr $ concatMap ((:) ' ') vars
-              , iStr " -> ", pprExpr expr
+              , iStr " -> ", pprExpr expr prec
               ]
-pprExpr (ELam vars expr)
+pprExpr (ELam vars expr) prec
   = iConcat [ iStr "\\", iStr $ intercalate " " vars
             , iStr " ->", iNewline, iStr " "
-            , iIndent (pprExpr expr)
+            , iIndent (pprExpr expr prec)
             ]
 
 -- Helper.
@@ -139,5 +149,5 @@ pprProgram scdefs =
     where
       pprScDefn (name, args, expr) =
         iConcat [ iStr name, iStr $ concatMap ((:) ' ') args
-                , iStr " = ", pprExpr expr
+                , iStr " = ", pprExpr expr 0
                 ]
