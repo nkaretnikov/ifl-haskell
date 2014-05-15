@@ -22,8 +22,11 @@ import Core.Parser
 
 tests = TestList $
   [ TestLabel "Exercise 1.9: Ignore comments" $
-      ["foo", "bar"] ~=? (clex "foo||a comment\nbar")
+      [(1,"foo"), (2,"bar")] ~=? (clex "foo||a comment\nbar" 1)
   , TestLabel "Exercise 1.10: Recognize two-character operators" $
-      ["==","~=","~","~",">=","<=","->","<","-"]  ~=?
-      (clex "== ~= ~~ >= <= -> <-")
+      [ (1,"=="), (1,"~="), (1,"~"), (1,"~"), (1,">=")
+      , (1,"<="), (1,"->"), (1,"<"), (1,"-")
+      ] ~=? (clex "== ~= ~~ >= <= -> <-" 1)
+  , TestLabel "Exercise 1.11: Attach a line number to each token" $
+      [(1,"foo"), (3,"bar")] ~=? (clex "foo \n\n bar" 1)
   ]
