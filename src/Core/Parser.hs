@@ -24,6 +24,11 @@ type Token = String             -- 'Token' is never empty
 
 clex :: String -> [Token]
 clex [] = []
+clex ('|':'|':cs)
+  = clex . dropChar '\n' $ dropWhile (/='\n') cs  -- ignore comments
+    where
+      dropChar c []     = []
+      dropChar c (x:xs) = if c == x then xs else (x:xs)
 clex (c:cs)
   | isSpace c = clex cs
   | isDigit c = let numToken = c : takeWhile isDigit cs

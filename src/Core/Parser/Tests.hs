@@ -15,10 +15,12 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -}
 
-module Main where
+module Core.Parser.Tests (tests) where
 
-import Test.HUnit (runTestTT, Test(..))
-import qualified Core.PPrinter.Tests as PPrinter
-import qualified Core.Parser.Tests as Parser
+import Test.HUnit (Test(..), (~=?))
+import Core.Parser
 
-main = runTestTT $ TestList [PPrinter.tests, Parser.tests]
+tests = TestList $
+  [ TestLabel "Exercise 1.9: Ignore comments" $
+      ["foo", "bar"] ~=? (clex "foo||a comment\nbar")
+  ]
