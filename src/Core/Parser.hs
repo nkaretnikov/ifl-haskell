@@ -29,6 +29,11 @@ clex ('|':'|':cs)
     where
       dropChar c []     = []
       dropChar c (x:xs) = if c == x then xs else (x:xs)
+clex (c1:c2:cs)
+  | isOperator [c1,c2] = [c1,c2] : clex cs
+    where
+      twoCharOps   = ["==", "~=", ">=", "<=", "->"]
+      isOperator o = o `elem` twoCharOps
 clex (c:cs)
   | isSpace c = clex cs
   | isDigit c = let numToken = c : takeWhile isDigit cs
