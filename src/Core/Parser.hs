@@ -99,3 +99,26 @@ pThen combine p1 p2 ts =
     Right (v1, ts1) -> case p2 ts1 of
       Left e2 -> Left e2
       Right (v2, ts2) -> Right (combine v1 v2, ts2)
+
+pThen3 :: (a -> b -> c -> d) -> Parser a -> Parser b -> Parser c -> Parser d
+pThen3 combine p1 p2 p3 ts =
+  case p1 ts of
+    Left e1 -> Left e1
+    Right (v1, ts1) -> case p2 ts1 of
+      Left e2 -> Left e2
+      Right (v2, ts2) -> case p3 ts2 of
+        Left e3 -> Left e3
+        Right (v3, ts3) -> Right (combine v1 v2 v3, ts3)
+
+pThen4 :: (a -> b -> c -> d -> e)
+       -> Parser a -> Parser b -> Parser c -> Parser d -> Parser e
+pThen4 combine p1 p2 p3 p4 ts =
+  case p1 ts of
+    Left e1 -> Left e1
+    Right (v1, ts1) -> case p2 ts1 of
+      Left e2 -> Left e2
+      Right (v2, ts2) -> case p3 ts2 of
+        Left e3 -> Left e3
+        Right (v3, ts3) -> case p4 ts3 of
+          Left e4 -> Left e4
+          Right (v4, ts4) -> Right (combine v1 v2 v3 v4, ts4)

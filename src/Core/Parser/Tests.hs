@@ -65,6 +65,44 @@ tests = TestList $
       (Left . ParseError 1 (show "hi") $
        show "hello" ++ " or " ++ show "goodbye") ~=?
          (pGreeting [(1,"hi"), (1,"42"), (1,"!")])
+  , TestLabel "Exercise 1.12: 'pThen3': all succeed" $
+      Right (("hello","James"), []) ~=?
+        (pGreeting3 [(1,"hello"), (1,"James"), (1,"!")])
+  , TestLabel "'pThen3': first parser fails" $
+      (Left . ParseError 1 (show "hi") $
+       show "hello" ++ " or " ++ show "goodbye") ~=?
+         (pGreeting3 [(1,"hi"), (1,"James"), (1,"!")])
+  , TestLabel "'pThen3': second parser fails" $
+      (Left $ ParseError 1 (show "42") "a variable") ~=?
+        (pGreeting3 [(1,"hello"), (1,"42"), (1,"!")])
+  , TestLabel "'pThen3': third parser fails" $
+      (Left $ ParseError 1 (show "?") (show "!")) ~=?
+        (pGreeting3 [(1,"hello"), (1,"James"), (1,"?")])
+  , TestLabel "Exercise 1.12: 'pThen4': all succeed" $
+      Right (("foobarbazqux"),[(1, "quux")]) ~=?
+        (let combine a b c d = a ++ b ++ c ++ d
+         in pThen4 combine (pLit "foo") (pLit "bar") (pLit "baz") (pLit "qux")
+              [(1, "foo"), (1, "bar"), (1, "baz"), (1, "qux"), (1, "quux")])
+  , TestLabel "'pThen4': first parser fails" $
+      (Left $ ParseError 1 (show "notfoo") (show "foo")) ~=?
+        (let combine a b c d = a ++ b ++ c ++ d
+         in pThen4 combine (pLit "foo") (pLit "bar") (pLit "baz") (pLit "qux")
+              [(1, "notfoo"), (1, "bar"), (1, "baz"), (1, "qux"), (1, "quux")])
+  , TestLabel "'pThen4': second parser fails" $
+      (Left $ ParseError 1 (show "notbar") (show "bar")) ~=?
+        (let combine a b c d = a ++ b ++ c ++ d
+         in pThen4 combine (pLit "foo") (pLit "bar") (pLit "baz") (pLit "qux")
+              [(1, "foo"), (1, "notbar"), (1, "baz"), (1, "qux"), (1, "quux")])
+  , TestLabel "'pThen4': third parser fails" $
+      (Left $ ParseError 1 (show "notbaz") (show "baz")) ~=?
+        (let combine a b c d = a ++ b ++ c ++ d
+         in pThen4 combine (pLit "foo") (pLit "bar") (pLit "baz") (pLit "qux")
+              [(1, "foo"), (1, "bar"), (1, "notbaz"), (1, "qux"), (1, "quux")])
+  , TestLabel "'pThen4': fourth parser fails" $
+      (Left $ ParseError 1 (show "notqux") (show "qux")) ~=?
+        (let combine a b c d = a ++ b ++ c ++ d
+         in pThen4 combine (pLit "foo") (pLit "bar") (pLit "baz") (pLit "qux")
+              [(1, "foo"), (1, "bar"), (1, "baz"), (1, "notqux"), (1, "quux")])
   ]
 
 pHelloOrGoodbye :: Parser String
@@ -72,3 +110,8 @@ pHelloOrGoodbye = (pLit "hello") `pAlt` (pLit "goodbye")
 
 pGreeting :: Parser (String, String)
 pGreeting = pThen (,) pHelloOrGoodbye pVar
+
+pGreeting3 :: Parser (String, String)
+pGreeting3 = pThen3 combine pHelloOrGoodbye pVar (pLit "!")
+  where
+    combine hg name exclamation = (hg, name)
