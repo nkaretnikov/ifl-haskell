@@ -122,3 +122,12 @@ pThen4 combine p1 p2 p3 p4 ts =
         Right (v3, ts3) -> case p4 ts3 of
           Left e4 -> Left e4
           Right (v4, ts4) -> Right (combine v1 v2 v3 v4, ts4)
+
+pZeroOrMore :: Parser a -> Parser [a]
+pZeroOrMore p = (pOneOrMore p) `pAlt` (pEmpty [])
+
+pEmpty :: a -> Parser a
+pEmpty x ts = Right (x,ts)
+
+pOneOrMore :: Parser a -> Parser [a]
+pOneOrMore p = pThen (:) p $ pZeroOrMore p

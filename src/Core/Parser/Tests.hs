@@ -103,6 +103,35 @@ tests = TestList $
         (let combine a b c d = a ++ b ++ c ++ d
          in pThen4 combine (pLit "foo") (pLit "bar") (pLit "baz") (pLit "qux")
               [(1, "foo"), (1, "bar"), (1, "baz"), (1, "notqux"), (1, "quux")])
+  , TestLabel "Exercise 1.13: 'pEmpty'" $
+      Right ("foo",[(1,"rest")]) ~=?
+        (pEmpty "foo" [(1,"rest")])
+  , TestLabel "Exercise 1.13: 'pZeroOrMore': zero" $
+       Right ([],[(1,"foo")]) ~=? (pGreetings [(1,"foo")])
+  , TestLabel "Exercise 1.13: 'pZeroOrMore': one" $
+      Right ([("hello","James")], [(1,"!")]) ~=?
+        (pGreetings [(1,"hello"), (1, "James"), (1,"!")])
+  , TestLabel "Exercise 1.13: 'pZeroOrMore': more" $
+      Right ( [("hello","James"), ("goodbye","James"), ("hello","James")]
+            , [(1,"!")]
+            ) ~=?
+        (pGreetings [ (1,"hello"), (1, "James"), (1, "goodbye"), (1, "James")
+                    , (1, "hello"), (1, "James"), (1, "!")
+                    ])
+  , TestLabel "Exercise 1.13: 'pOneOrMore': one" $
+      Right ([("hello", "James")], [(1,"!")]) ~=?
+        (pGreetings1 [(1,"hello"), (1, "James"), (1,"!")])
+  , TestLabel "Exercise 1.13: 'pOneOrMore': more" $
+      Right ( [("hello","James"), ("hello","James"), ("goodbye","James")]
+            , [(1,"!")]
+            ) ~=?
+        (pGreetings1 [ (1,"hello"), (1, "James"), (1, "hello"), (1, "James")
+                     , (1, "goodbye"), (1, "James"), (1, "!")
+                     ])
+  , TestLabel "Exercise 1.13: 'pOneOrMore': zero" $
+      (Left . ParseError 1 (show "!") $
+       show "hello" ++ " or " ++ show "goodbye") ~=?
+         (pGreetings1 [(1,"!")])
   ]
 
 pHelloOrGoodbye :: Parser String
@@ -115,3 +144,9 @@ pGreeting3 :: Parser (String, String)
 pGreeting3 = pThen3 combine pHelloOrGoodbye pVar (pLit "!")
   where
     combine hg name exclamation = (hg, name)
+
+pGreetings :: Parser [(String, String)]
+pGreetings = pZeroOrMore pGreeting
+
+pGreetings1 :: Parser [(String, String)]
+pGreetings1 = pOneOrMore pGreeting
