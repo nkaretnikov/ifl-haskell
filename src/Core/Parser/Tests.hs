@@ -132,6 +132,15 @@ tests = TestList $
       (Left . ParseError 1 (show "!") $
        show "hello" ++ " or " ++ show "goodbye") ~=?
          (pGreetings1 [(1,"!")])
+  , TestLabel "Exercise 1.14: 'pApply': match" $
+      Right (3, [(1,"!")]) ~=?
+        (pGreetingsN [ (1,"hello"), (1,"James"), (1,"hello"), (1,"James")
+                     , (1,"goodbye"), (1,"James"), (1,"!")
+                     ])
+  , TestLabel "Exercise 1.14: 'pApply': failure" $
+      (Left . ParseError 1 (show "!") $
+       show "hello" ++ " or " ++ show "goodbye") ~=?
+        (pGreetingsN [(1,"!")])
   ]
 
 pHelloOrGoodbye :: Parser String
@@ -150,3 +159,6 @@ pGreetings = pZeroOrMore pGreeting
 
 pGreetings1 :: Parser [(String, String)]
 pGreetings1 = pOneOrMore pGreeting
+
+pGreetingsN :: Parser Int
+pGreetingsN = pGreetings1 `pApply` length

@@ -131,3 +131,8 @@ pEmpty x ts = Right (x,ts)
 
 pOneOrMore :: Parser a -> Parser [a]
 pOneOrMore p = pThen (:) p $ pZeroOrMore p
+
+pApply :: Parser a -> (a -> b) -> Parser b
+pApply p f ts = case p ts of
+  Left e -> Left e
+  Right (v, ts) -> Right (f v, ts)
