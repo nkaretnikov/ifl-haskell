@@ -141,6 +141,19 @@ tests = TestList $
       (Left . ParseError 1 (show "!") $
        show "hello" ++ " or " ++ show "goodbye") ~=?
         (pGreetingsN [(1,"!")])
+  , TestLabel "Exercise 1.15: 'pOneOrMoreWithSep': one match" $
+      Right (["a"], [(1,"!")]) ~=?
+        pOneOrMoreWithSep (pLit "a") (pLit "b") [(1,"a"), (1,"!")]
+  , TestLabel "Exercise 1.15: 'pOneOrMoreWithSep': separator" $
+      Right (["a", "a"], [(1,"!")]) ~=?
+        pOneOrMoreWithSep (pLit "a") (pLit "b")
+          [(1,"a"), (1,"b"), (1,"a"), (1,"!")]
+  , TestLabel "Exercise 1.15: 'pOneOrMoreWithSep': no match" $
+      (Left $ ParseError 1 (show "!") (show "a")) ~=?
+        pOneOrMoreWithSep (pLit "a") (pLit "b") [(1,"!")]
+  , TestLabel "Exercise 1.15: 'pOneOrMoreWithSep': no separator" $
+      Right (["a"], [(1,"a"),(1,"!")]) ~=?
+        pOneOrMoreWithSep (pLit "a") (pLit "b") [(1, "a"), (1,"a"), (1,"!")]
   ]
 
 pHelloOrGoodbye :: Parser String

@@ -136,3 +136,6 @@ pApply :: Parser a -> (a -> b) -> Parser b
 pApply p f ts = case p ts of
   Left e -> Left e
   Right (v, ts) -> Right (f v, ts)
+
+pOneOrMoreWithSep :: Parser a -> Parser b -> Parser [a]
+pOneOrMoreWithSep p1 p2 = pThen (:) p1 (pZeroOrMore $ pThen (flip const) p2 p1)
