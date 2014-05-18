@@ -55,3 +55,47 @@ syntax = undefined
 
 parse :: String -> CoreProgram
 parse = syntax . flip clex 1
+
+data ParseError = ParseError { errorLine  :: Int
+                             , unexpected :: String
+                             , expected   :: String
+                             } deriving Eq
+
+instance Show ParseError where
+  show e = "line " ++ show (errorLine e) ++ ":" ++
+           " unexpected " ++ unexpected e ++
+           "; expected " ++ expected e
+
+type Parser a = [Token] -> (Either ParseError (a, [Token]))
+
+pLit :: String -> Parser String
+pLit x []     = Left $ ParseError 1 "empty input" (show x)
+pLit x ((n,s):ts)
+  | x == s    = Right (s,ts)
+  | otherwise = Left $ ParseError n (show s) (show x)
+
+pVar :: Parser String
+pVar []       = Left $ ParseError 1 "empty input" "a variable"
+pVar ((n,s):ts)
+  -- If the first character is a letter, the token is a variable (see
+  -- the 'isAlpha c' case in the definition of 'clex').
+  -- Since 'Token' is never empty, it is safe to use 'head' here.
+  | isAlpha $ head s = Right (s,ts)
+  | otherwise        = Left $ ParseError n (show s) "a variable"
+
+-- | Apply two parsers to the same input.
+pAlt :: Parser a -> Parser a -> Parser a
+pAlt p1 p2 ts = case p1 ts of
+  Right res1 -> Right res1
+  Left e1    -> case p2 ts of
+    Right res2 -> Right res2
+    Left e2    -> Left . ParseError (errorLine e1) (unexpected e1) $
+                    (expected e1) ++ " or " ++ (expected e2)
+
+pThen :: (a -> b -> c) -> Parser a -> Parser b -> Parser c
+pThen combine p1 p2 ts =
+  case p1 ts of
+    Left e1 -> Left e1
+    Right (v1, ts1) -> case p2 ts1 of
+      Left e2 -> Left e2
+      Right (v2, ts2) -> Right (combine v1 v2, ts2)

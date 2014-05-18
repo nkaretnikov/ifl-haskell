@@ -29,4 +29,46 @@ tests = TestList $
       ] ~=? (clex "== ~= ~~ >= <= -> <-" 1)
   , TestLabel "Exercise 1.11: Attach a line number to each token" $
       [(1,"foo"), (3,"bar")] ~=? (clex "foo \n\n bar" 1)
+  , TestLabel "'pLit': empty input" $
+      (Left . ParseError 1 "empty input" $ show "foo") ~=? (pLit "foo" [])
+  , TestLabel "'pLit': matching string" $
+      Right ("foo", [(1,"bar")]) ~=? (pLit "foo" $ [(1,"foo"), (1,"bar")])
+  , TestLabel "'pLit': failure to parse" $
+      (Left . ParseError 1 (show "hello") $ show "goodbye") ~=?
+        (pLit "goodbye" [(1,"hello"), (1,"rest")])
+  , TestLabel "'pVar': variable" $
+      Right ("foo", [(2,"bar")]) ~=? (pVar [(1,"foo"), (2,"bar")])
+  , TestLabel "'pVar': not a variable" $
+      (Left $ ParseError 1 (show "1") "a variable") ~=?
+        (pVar [(1,"1"), (1,"foo")])
+  , TestLabel "'pAlt': first match" $
+      Right ("hello", [(1,"rest")]) ~=?
+        (pHelloOrGoodbye [(1,"hello"), (1,"rest")])
+  , TestLabel "'pAlt': second match" $
+      Right ("goodbye", [(1,"rest")]) ~=?
+        (pHelloOrGoodbye [(1,"goodbye"), (1,"rest")])
+  , TestLabel "'pAlt': parse failure" $
+      (Left . ParseError 1 (show "foo") $
+       (show "hello") ++ " or " ++ (show "goodbye")) ~=?
+         (pHelloOrGoodbye [(1,"foo"), (1,"rest")])
+  , TestLabel "'pThen': both parsers succeed" $
+      Right (("hello","James"), [(1,"!")]) ~=?
+        (pGreeting [(1,"hello"), (1,"James"), (1,"!")])
+  , TestLabel "'pThen': first parser fails" $
+      (Left . ParseError 1 (show "hi") $
+       show "hello" ++ " or " ++ show "goodbye") ~=?
+         (pGreeting [(1,"hi"), (1,"James"), (1,"!")])
+  , TestLabel "'pThen': second parser fails" $
+      (Left $ ParseError 1 (show "42") "a variable") ~=?
+        (pGreeting [(1,"hello"), (1,"42"), (1,"!")])
+  , TestLabel "'pThen': both parsers fail" $
+      (Left . ParseError 1 (show "hi") $
+       show "hello" ++ " or " ++ show "goodbye") ~=?
+         (pGreeting [(1,"hi"), (1,"42"), (1,"!")])
   ]
+
+pHelloOrGoodbye :: Parser String
+pHelloOrGoodbye = (pLit "hello") `pAlt` (pLit "goodbye")
+
+pGreeting :: Parser (String, String)
+pGreeting = pThen (,) pHelloOrGoodbye pVar
