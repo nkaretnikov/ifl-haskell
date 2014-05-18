@@ -207,6 +207,17 @@ tests = TestList $
       (parse $ "foo f x y z   = f x y z;\n"
             ++ "bar f g x y z = f (g x y) z;\n"
             ++ "baz f g x y z = f x (g y z)")
+  , TestLabel "Exercise 1.24: infix operators" $
+      [("foo", ["x","y","p","xs"], EAp (EAp (EVar ">")
+                                            (EAp (EAp (EVar "+")
+                                                      (EVar "x"))
+                                                 (EVar "y")))
+                                       (EAp (EAp (EVar "*")
+                                                 (EVar "p"))
+                                            (EAp (EVar "length")
+                                                 (EVar "xs"))))
+      ] ~=?
+      (parse "foo x y p xs = x + y > p * length xs")
   ]
 
 pHelloOrGoodbye :: Parser String

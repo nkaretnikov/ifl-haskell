@@ -84,9 +84,53 @@ pSc = pThen4 mkSc pVar (pZeroOrMore pVar) (pLit "=") pExpr
 
 pExpr :: Parser CoreExpr
 pExpr =
-  pEAp `pAlt` pELet `pAlt` pELetrec `pAlt` pECase `pAlt` pELam `pAlt` pAExpr
+  pELet `pAlt` pELetrec `pAlt` pECase `pAlt` pELam `pAlt` pExpr1 `pAlt` pAExpr
 
-pEAp = pApply (pOneOrMore pAExpr) (foldl1 EAp)
+data PartialExpr = NoOp
+                 | FoundOp Name CoreExpr
+
+pExpr1c :: Parser PartialExpr
+pExpr1c = (pThen FoundOp (pLit "|") pExpr1) `pAlt` (pEmpty NoOp)
+
+pExpr1 :: Parser CoreExpr
+pExpr1 = pThen assembleOp pExpr2 pExpr1c
+
+pExpr2c :: Parser PartialExpr
+pExpr2c = (pThen FoundOp (pLit "&") pExpr2) `pAlt` (pEmpty NoOp)
+
+pExpr2 :: Parser CoreExpr
+pExpr2 = pThen assembleOp pExpr3 pExpr2c
+
+pExpr3c :: Parser PartialExpr
+pExpr3c = (pThen FoundOp pRelop pExpr4) `pAlt` (pEmpty NoOp)
+  where pRelop = (pLit "<") `pAlt` (pLit "<=") `pAlt` (pLit "==") `pAlt`
+                 (pLit "~=") `pAlt` (pLit ">=") `pAlt` (pLit ">")
+
+pExpr3 :: Parser CoreExpr
+pExpr3 = pThen assembleOp pExpr4 pExpr3c
+
+pExpr4c :: Parser PartialExpr
+pExpr4c = (pThen FoundOp (pLit "+") pExpr4) `pAlt`
+          (pThen FoundOp (pLit "-") pExpr5) `pAlt`
+          (pEmpty NoOp)
+
+pExpr4 :: Parser CoreExpr
+pExpr4 = pThen assembleOp pExpr5 pExpr4c
+
+pExpr5c :: Parser PartialExpr
+pExpr5c = (pThen FoundOp (pLit "*") pExpr5) `pAlt`
+          (pThen FoundOp (pLit "/") pExpr6) `pAlt`
+          (pEmpty NoOp)
+
+pExpr5 :: Parser CoreExpr
+pExpr5 = pThen assembleOp pExpr6 pExpr5c
+
+pExpr6 :: Parser CoreExpr
+pExpr6 = pApply (pOneOrMore pAExpr) (foldl1 EAp)
+
+assembleOp :: CoreExpr -> PartialExpr -> CoreExpr
+assembleOp e1 NoOp = e1
+assembleOp e1 (FoundOp op e2) = EAp (EAp (EVar op) e1) e2
 
 pDefns = pOneOrMore pDefn
   where
