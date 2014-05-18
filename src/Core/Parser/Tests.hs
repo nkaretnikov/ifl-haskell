@@ -188,6 +188,25 @@ tests = TestList $
             ++ "        <1> -> case y of\n"
             ++ "               <1> -> 1;\n"
             ++ "        <2> -> 2")
+  , TestLabel "Exercise 1.23: application" $
+      [ ("foo", ["f","x","y","z"], EAp (EAp (EAp (EVar "f")
+                                                 (EVar "x"))
+                                            (EVar "y"))
+                                       (EVar "z"))
+      , ("bar", ["f","g","x","y","z"], EAp (EAp (EVar "f")
+                                                (EAp (EAp (EVar "g")
+                                                          (EVar "x"))
+                                                     (EVar "y")))
+                                           (EVar "z"))
+      , ("baz", ["f","g","x","y","z"], EAp (EAp (EVar "f")
+                                                (EVar "x"))
+                                           (EAp (EAp (EVar "g")
+                                                     (EVar "y"))
+                                                (EVar "z")))
+      ] ~=?
+      (parse $ "foo f x y z   = f x y z;\n"
+            ++ "bar f g x y z = f (g x y) z;\n"
+            ++ "baz f g x y z = f x (g y z)")
   ]
 
 pHelloOrGoodbye :: Parser String

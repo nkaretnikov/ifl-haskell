@@ -83,7 +83,10 @@ pSc = pThen4 mkSc pVar (pZeroOrMore pVar) (pLit "=") pExpr
     mkSc name args _ expr = (name, args, expr)
 
 pExpr :: Parser CoreExpr
-pExpr = pELet `pAlt` pELetrec `pAlt` pECase `pAlt` pELam `pAlt` pAExpr
+pExpr =
+  pEAp `pAlt` pELet `pAlt` pELetrec `pAlt` pECase `pAlt` pELam `pAlt` pAExpr
+
+pEAp = pApply (pOneOrMore pAExpr) (foldl1 EAp)
 
 pDefns = pOneOrMore pDefn
   where
