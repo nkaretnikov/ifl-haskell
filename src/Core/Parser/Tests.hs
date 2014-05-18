@@ -178,6 +178,16 @@ tests = TestList $
             ++ "h x = case (let y = x in y) of\n"
             ++ "        <1> -> 2 ;\n"
             ++ "        <2> -> 5")
+  , TestLabel "Exercise 1.22: dangling else" $
+      [("f", ["x","y"], ECase (EVar "x")
+                          [(1, [], ECase (EVar "y")
+                                     [ (1, [], ENum 1)
+                                     , (2, [], ENum 2)
+                                     ])])] ~=?
+      (parse $ "f x y = case x of\n"
+            ++ "        <1> -> case y of\n"
+            ++ "               <1> -> 1;\n"
+            ++ "        <2> -> 2")
   ]
 
 pHelloOrGoodbye :: Parser String
