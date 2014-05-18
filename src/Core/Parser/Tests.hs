@@ -19,6 +19,7 @@ module Core.Parser.Tests (tests) where
 
 import Test.HUnit (Test(..), (~=?))
 import Core.Parser
+import Core.Language
 
 tests = TestList $
   [ TestLabel "Exercise 1.9: Ignore comments" $
@@ -164,6 +165,19 @@ tests = TestList $
   , TestLabel "Exercise 1.15: 'pOneOrMoreWithSep': no separator" $
       Right (["a"], [(1,"a"),(1,"!")]) ~=?
         pOneOrMoreWithSep (pLit "a") (pLit "b") [(1, "a"), (1,"a"), (1,"!")]
+  , TestLabel "Exercise 1.21: 'parse'" $
+      [ ("f", [], ENum 3)
+      , ("g", ["x","y"], ELet False [("z", EVar "x")] (EVar "z"))
+      , ("h", ["x"], ECase (ELet False [("y", EVar "x")] (EVar "y"))
+                       [ (1, [], ENum 2)
+                       , (2, [], ENum 5)
+                       ])
+      ] ~=?
+      (parse $ "f = 3 ;\n"
+            ++ "g x y = let z = x in z ;\n"
+            ++ "h x = case (let y = x in y) of\n"
+            ++ "        <1> -> 2 ;\n"
+            ++ "        <2> -> 5")
   ]
 
 pHelloOrGoodbye :: Parser String

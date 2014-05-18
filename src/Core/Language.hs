@@ -29,7 +29,7 @@ data Expr a = EVar String            -- variables
                 (Expr a)               -- expression to scrutinize
                 [Alter a]              -- alternatives
             | ELam [a] (Expr a)      -- lambda abstractions
-            deriving Show
+            deriving (Show, Eq)
 type Name     = String
 type CoreExpr = Expr Name
 
@@ -68,6 +68,7 @@ type ScDefn a = ( Name          -- name of the supercombinator
                 , [a]           -- its arguments
                 , Expr a        -- its body
                 )
+type CoreScDefn = ScDefn Name
 
 -- | Standard prelude.
 {-

@@ -51,7 +51,75 @@ clex (c:cs) n
       isSpace c   = c `elem` " \t"
 
 syntax :: [Token] -> CoreProgram
-syntax = undefined
+syntax = takeScs . pProgram
+  where
+    takeScs xs = case xs of
+      -- The list of tokens contains only the list of
+      -- supercombinators, which is what we want.
+      Right (scs,[]) -> scs
+      -- Something is left out, which indicates a syntax error.  We
+      -- inspect those tokens to print a more informative error
+      -- message.
+      Right (_,ts)   -> takeScs $
+        let Left e = pThen (flip const) (pLit ";") pProgram ts
+        in if unexpected e == "empty input"
+           -- XXX: In the "empty input" cases of 'pLit', 'pVar', and
+           -- 'pNum', 'errorLine' is hardcoded to '1' since the empty
+           -- list does not contain anything, including the line
+           -- numbers.  There, it means that the parser is passed to
+           -- the empty input (the start of a file).  But here, it
+           -- means that the parser has reached the end of input (the
+           -- end of a file), so the line number may be different.
+           then Left $ ParseError (fst $ last ts) (unexpected e) (expected e)
+           else Left e
+      Left e         -> error $ "syntax error: " ++ show e
+
+pProgram :: Parser CoreProgram
+pProgram = pOneOrMoreWithSep pSc (pLit ";")
+
+pSc :: Parser CoreScDefn
+pSc = pThen4 mkSc pVar (pZeroOrMore pVar) (pLit "=") pExpr
+  where
+    mkSc name args _ expr = (name, args, expr)
+
+pExpr :: Parser CoreExpr
+pExpr = pELet `pAlt` pELetrec `pAlt` pECase `pAlt` pELam `pAlt` pAExpr
+
+pDefns = pOneOrMore pDefn
+  where
+    pDefn = pThen3 (\v _ e -> (v,e)) pVar (pLit "=") pExpr
+
+pELet    = pThen4 mkELet (pLit "let") pDefns (pLit "in") pExpr
+  where
+    mkELet _ ds _ e = ELet nonRecursive ds e
+
+pELetrec = pThen4 mkELetrec (pLit "letrec") pDefns (pLit "in") pExpr
+  where
+    mkELetrec _ ds _ e = ELet recursive ds e
+
+pECase   = pThen4 mkECase (pLit "case") pExpr (pLit "of") pAlts
+  where
+    mkECase _ e _ as = ECase e as
+    pAlts = pOneOrMoreWithSep pAlt (pLit ";")
+    pAlt  = pThen4 mkAlt (pThen3 (\_ n _ -> n) (pLit "<") pNum (pLit ">"))
+                         (pZeroOrMore pVar)
+                         (pLit "->")
+                         pExpr
+    mkAlt n vs _ e = (n,vs,e)
+
+pELam    = pThen4 mkELam (pLit "\\") (pOneOrMore pVar) (pLit ".") pExpr
+  where
+    mkELam _ vs _ e = ELam vs e
+
+pAExpr   = pEVar `pAlt` pENum `pAlt` pEConstr `pAlt` pPExpr
+
+pEVar    = pApply pVar EVar
+
+pENum    = pApply pNum ENum
+
+pEConstr = pThen EConstr pNum pNum
+
+pPExpr   = pThen3 (\_ e _ -> e) (pLit "(") pExpr (pLit ")")
 
 parse :: String -> CoreProgram
 parse = syntax . flip clex 1
