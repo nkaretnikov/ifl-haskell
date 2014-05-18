@@ -18,7 +18,7 @@
 module Core.Parser where
 
 import Core.Language
-import Data.Char (isDigit, isAlpha)
+import Data.Char (isDigit, isAlpha, isNumber)
 
 type LineNumber = Int
 type Token = (LineNumber, String)  -- 'Token' is never empty
@@ -85,6 +85,12 @@ pVar ((n,s):ts)
   | otherwise            = Left $ ParseError n (show s) "a variable"
     where
       keywords = ["let", "letrec", "case", "in", "of", "Pack"]
+
+pNum :: Parser Int
+pNum []            = Left $ ParseError 1 "empty input" "an integer"
+pNum ((n,s):ts)
+  | all isNumber s = Right (read s, ts)
+  | otherwise      = Left $ ParseError n (show s) "an integer"
 
 -- | Apply two parsers to the same input.
 pAlt :: Parser a -> Parser a -> Parser a

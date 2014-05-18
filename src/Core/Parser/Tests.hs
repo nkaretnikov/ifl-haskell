@@ -44,6 +44,13 @@ tests = TestList $
   , TestLabel "Exercise 1.17: 'pVar': ignore keywords" $
       (Left $ ParseError 1 (show "let") "a variable") ~=?
         (pVar [(1,"let"), (1,"!")])
+  , TestLabel "Exercise 1.18: 'pNum': integer" $
+      Right (4242, [(1,"!")]) ~=? (pNum [(1,"4242"), (1,"!")])
+  , TestLabel "Exercise 1.18: 'pNum': integer" $
+      (Left $ ParseError 1 "empty input" "an integer") ~=? (pNum [])
+  , TestLabel "Exercise 1.18: 'pNum': parse failure" $
+      (Left $ ParseError 1 (show "42.42") "an integer") ~=?
+        (pNum [(1,"42.42"), (1,"!")])
   , TestLabel "'pAlt': first match" $
       Right ("hello", [(1,"rest")]) ~=?
         (pHelloOrGoodbye [(1,"hello"), (1,"rest")])
