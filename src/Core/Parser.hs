@@ -75,13 +75,16 @@ pLit x ((n,s):ts)
   | otherwise = Left $ ParseError n (show s) (show x)
 
 pVar :: Parser String
-pVar []       = Left $ ParseError 1 "empty input" "a variable"
+pVar []                  = Left $ ParseError 1 "empty input" "a variable"
 pVar ((n,s):ts)
+  | any (== s) keywords  = Left $ ParseError n (show s) "a variable"
   -- If the first character is a letter, the token is a variable (see
   -- the 'isAlpha c' case in the definition of 'clex').
   -- Since 'Token' is never empty, it is safe to use 'head' here.
-  | isAlpha $ head s = Right (s,ts)
-  | otherwise        = Left $ ParseError n (show s) "a variable"
+  | isAlpha $ head s     = Right (s,ts)
+  | otherwise            = Left $ ParseError n (show s) "a variable"
+    where
+      keywords = ["let", "letrec", "case", "in", "of", "Pack"]
 
 -- | Apply two parsers to the same input.
 pAlt :: Parser a -> Parser a -> Parser a

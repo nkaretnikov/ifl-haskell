@@ -41,6 +41,9 @@ tests = TestList $
   , TestLabel "'pVar': not a variable" $
       (Left $ ParseError 1 (show "1") "a variable") ~=?
         (pVar [(1,"1"), (1,"foo")])
+  , TestLabel "Exercise 1.17: 'pVar': ignore keywords" $
+      (Left $ ParseError 1 (show "let") "a variable") ~=?
+        (pVar [(1,"let"), (1,"!")])
   , TestLabel "'pAlt': first match" $
       Right ("hello", [(1,"rest")]) ~=?
         (pHelloOrGoodbye [(1,"hello"), (1,"rest")])
