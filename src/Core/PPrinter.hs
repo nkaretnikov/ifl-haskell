@@ -131,7 +131,7 @@ pprExpr (ECase expr alts) prec
               ]
 pprExpr (ELam vars expr) prec
   = iConcat [ iStr "\\", iStr $ intercalate " " vars
-            , iStr " ->", iNewline, iStr " "
+            , iStr " .", iNewline, iStr " "
             , iIndent (pprExpr expr prec)
             ]
 

@@ -56,6 +56,9 @@ tests = TestList $
                            (EVar "p"))
                       (EAp (EVar "length")
                            (EVar "xs"))))
+  , TestLabel "'ELam' indentation" $
+      "\\x y z .\n x" ~=?
+      (ppr $ ELam ["x","y","z"] (EVar "x"))
   ]
     where
       ppr = iDisplay . flip pprExpr 0
