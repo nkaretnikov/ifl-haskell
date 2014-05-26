@@ -25,6 +25,23 @@ tests = TestList $
   [ TestLabel "Exercise 1.6: 'ELet' indentation" $
       "let\n x = 42\nin x" ~=?
       (ppr $ ELet nonRecursive [("x", ENum 42)] (EVar "x"))
+  , TestLabel "'ELet': letrec" $
+      "letrec\n x = 42\nin x" ~=?
+      (ppr $ ELet recursive [("x", ENum 42)] (EVar "x"))
+  , TestLabel "'ELet': two bindings" $
+      "let\n x = 42;\n y = 43\nin x" ~=?
+      (ppr $ ELet nonRecursive [("x", ENum 42), ("y", ENum 43)] (EVar "x"))
+  , TestLabel "'ELet': nested binding" $
+      "let\n x = let\n  x' = 42\n in x';\n y = 43\nin x" ~=?
+      (ppr $ ELet nonRecursive
+       [ ("x", (ELet nonRecursive [("x'", ENum 42)] (EVar "x'")))
+       , ("y", ENum 43)
+       ] (EVar "x"))
+  , TestLabel "'ELet': nested expression" $
+      -- XXX: shouldn't it return "let\n x = 42\nin let\n    y = 43\n   in y"?
+      "let\n x = 42\nin let\n y = 43\nin y" ~=?
+      (ppr $ ELet nonRecursive [("x", ENum 42)]
+       (ELet nonRecursive [("y", ENum 43)] (EVar "y")))
   , TestLabel "Precedence: parentheses" $
       "(x + y) * z" ~=?
       (ppr $ EAp (EAp (EVar "*")
