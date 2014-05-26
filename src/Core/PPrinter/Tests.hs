@@ -42,6 +42,21 @@ tests = TestList $
       "let\n x = 42\nin let\n y = 43\nin y" ~=?
       (ppr $ ELet nonRecursive [("x", ENum 42)]
        (ELet nonRecursive [("y", ENum 43)] (EVar "y")))
+  , TestLabel "'ECase': trivial" $
+      "case 42 of\n 1 x -> x" ~=?
+      (ppr $ ECase (ENum 42) [(1, ["x"], EVar "x")])
+  , TestLabel "'ECase': no variables" $
+      "case 42 of\n 1 -> 43" ~=?
+      (ppr $ ECase (ENum 42) [(1, [], ENum 43)])
+  , TestLabel "'ECase': two cases" $
+      "case 42 of\n 1 x y -> y;\n 1 x -> x" ~=?
+      (ppr $ ECase (ENum 42) [(1, ["x","y"], EVar "y"), (1, ["x"], EVar "x")])
+  , TestLabel "'ECase': nested case" $
+      "case 42 of\n 1 x y -> case y of\n  1 -> 43;\n 1 x -> x" ~=?
+      (ppr $ ECase (ENum 42)
+       [ (1, ["x","y"], ECase (EVar "y") [(1, [], ENum 43)])
+       , (1, ["x"], EVar "x")
+       ])
   , TestLabel "Precedence: parentheses" $
       "(x + y) * z" ~=?
       (ppr $ EAp (EAp (EVar "*")
