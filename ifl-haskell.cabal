@@ -17,7 +17,7 @@
 name:                ifl-haskell
 version:             0.1.0.0
 synopsis:            "Implementing Functional Languages: a tutorial" in Haskell
-homepage:            https://gitorious.org/ifl-haskell
+homepage:            https://github.com/nkaretnikov/ifl-haskell
 license:             GPL-3
 license-file:        LICENSE
 author:              Nikita Karetnikov
