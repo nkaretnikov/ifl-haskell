@@ -125,6 +125,7 @@ mapSep f xs = iInterleave sep (map f xs)
   where
     sep = iConcat [iStr ";", iNewline]
 
+pprint :: CoreProgram -> String
 pprint prog = iDisplay (pprProgram prog)
 
 pprProgram :: CoreProgram -> Iseq
