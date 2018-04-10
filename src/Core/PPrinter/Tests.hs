@@ -4,6 +4,7 @@ import Test.HUnit (Test(..), (~=?))
 import Core.Language
 import Core.PPrinter
 
+tests :: Test
 tests = TestList $
   [ TestLabel "Exercise 1.6: 'ELet' indentation" $
       "let\n x = 42\nin x" ~=?
