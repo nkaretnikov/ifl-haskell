@@ -91,7 +91,9 @@ pprExpr (EAp e1 e2) prec
   = (pprExpr e1 prec) `iAppend` (iStr " ") `iAppend` (pprExpr e2 prec)
 pprExpr (ELet isrec defns expr) prec
   = iConcat [ iStr keyword, iNewline
-            , iStr " ", iIndent (mapSep pprDefn defns), iNewline
+            , iStr " "
+            , iIndent (mapSep (\defn -> pprDefn defn prec) defns)
+            , iNewline
             , iStr "in ", pprExpr expr prec
             ]
     where
@@ -100,7 +102,8 @@ pprExpr (ELet isrec defns expr) prec
 
 pprExpr (ECase expr alts) prec
   = iConcat [ iStr "case ", pprExpr expr prec, iStr " of"
-            , iNewline, iStr " ", iIndent (mapSep pprAlt alts)
+            , iNewline, iStr " "
+            , iIndent (mapSep (\alt -> pprAlt alt prec) alts)
             ]
 pprExpr (ELam vars expr) prec
   = iConcat [ iStr "\\", iStr $ intercalate " " vars
@@ -108,12 +111,12 @@ pprExpr (ELam vars expr) prec
             , iIndent (pprExpr expr prec)
             ]
 
-pprDefn :: (Name, CoreExpr) -> Iseq
-pprDefn (name, expr)
+pprDefn :: (Name, CoreExpr) -> Precedence -> Iseq
+pprDefn (name, expr) prec
   = iConcat [iStr name, iStr " = ", pprExpr expr prec]
 
-pprAlt :: Alter Name -> Iseq
-pprAlt (tag, vars, expr) =
+pprAlt :: Alter Name -> Precedence -> Iseq
+pprAlt (tag, vars, expr) prec =
   iConcat [ iStr $ show tag
           , iStr $ concatMap ((:) ' ') vars
           , iStr " -> ", pprExpr expr prec
