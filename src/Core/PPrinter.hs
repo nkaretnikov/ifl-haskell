@@ -71,6 +71,7 @@ type Precedence = Int
 pprExpr :: CoreExpr -> Precedence -> Iseq
 pprExpr (EVar v) _ = iStr v
 pprExpr (ENum n) _ = iStr $ show n
+pprExpr (EConstr tag ar) _ = undefined  -- XXX
 pprExpr (EAp (EAp (EVar o) e1) e2) prec
   | any (== o) ["*", "/", "+", "-", "==", "~=", ">", ">=", "<", "<=", "&", "|"]
     = let o' = iConcat [iStr " ", iStr o, iStr " "]

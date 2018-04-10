@@ -2,7 +2,7 @@ module Core.Language where
 
 data Expr a = EVar String            -- variables
             | ENum Int               -- numbers
-            | EConstr Int Int        -- constructor tar arity
+            | EConstr Int Int        -- constructor tag arity
             | EAp (Expr a) (Expr a)  -- applications
             | ELet                   -- let(rec) expression
                 IsRec                  -- recursive? (boolean)
