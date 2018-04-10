@@ -1,4 +1,4 @@
-.PHONY: nix_files shell
+.PHONY: nix_files shell build test
 
 # Generate .nix files from a .cabal file.
 nix_files:
@@ -8,3 +8,9 @@ nix_files:
 # Create a shell with dependencies.
 shell:
 	nix-shell
+
+build:
+	cabal build
+
+test:
+	dist/build/tests/tests
