@@ -20,7 +20,8 @@ library
   default-language:    Haskell2010
   ghc-options:         -Wall -Werror
 
-executable tests
+test-suite tests
+  type:                exitcode-stdio-1.0
   main-is:             Tests.hs
   other-modules:       Core.Language
                      , Core.PPrinter

@@ -13,7 +13,7 @@ build:
 	cabal build
 
 test:
-	dist/build/tests/tests
+	cabal test
 
 clean:
 	cabal clean
