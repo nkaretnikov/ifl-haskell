@@ -37,8 +37,8 @@ type CoreAlt = Alter Name
 -- | Return 'True' if passed to an expression with no internal
 -- structure.
 isAtomicExpr :: Expr a -> Bool
-isAtomicExpr (EVar v) = True
-isAtomicExpr (ENum n) = True
+isAtomicExpr (EVar _) = True
+isAtomicExpr (ENum _) = True
 isAtomicExpr _        = False
 
 -- | A Core language program is just a list of supercombinator

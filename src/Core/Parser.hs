@@ -11,7 +11,7 @@ clex [] _ = []
 clex ('|':'|':cs) n
   = clex (dropChar '\n' $ dropWhile (/='\n') cs) (n + 1)  -- ignore comments
     where
-      dropChar c []     = []
+      dropChar _ []     = []
       dropChar c (x:xs) = if c == x then xs else (x:xs)
 clex (c1:c2:cs) n
   | isOperator [c1,c2] = (n, [c1,c2]) : clex cs n

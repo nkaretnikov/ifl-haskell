@@ -40,19 +40,19 @@ flatten :: Int                  -- current column; zero-indexed
         -> [(Iseq, Int)]        -- work list
         -> String               -- result
 flatten _ [] = ""
-flatten col ((INil, indent) : xs)
+flatten col ((INil, _) : xs)
   = flatten col xs
-flatten col ((IStr x, indent) : xs)
+flatten col ((IStr x, _) : xs)
   = x ++ (flatten (col + length spaces) xs)
     where
       spaces = takeWhile isSpace x
 flatten col ((IAppend x1 x2, indent) : xs)
   = flatten col ((x1, indent) : (x2, indent) : xs)
-flatten col ((INewline, indent) : xs)
+flatten _ ((INewline, indent) : xs)
   = '\n' : (space indent) ++ (flatten indent xs)
     where
       space n = replicate n ' '
-flatten col ((IIndent x, indent) : xs)
+flatten col ((IIndent x, _) : xs)
   = flatten col ((x, col) : xs)
 
 
