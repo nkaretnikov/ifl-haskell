@@ -98,26 +98,26 @@ pprExpr (ELet isrec defns expr) prec
       keyword | isrec     = "letrec"
               | otherwise = "let"
 
-      pprDefn :: (Name, CoreExpr) -> Iseq
-      pprDefn (name, expr)
-        = iConcat [iStr name, iStr " = ", pprExpr expr prec]
-
 pprExpr (ECase expr alts) prec
   = iConcat [ iStr "case ", pprExpr expr prec, iStr " of"
             , iNewline, iStr " ", iIndent (mapSep pprAlt alts)
             ]
-  where
-    pprAlt :: Alter Name -> Iseq
-    pprAlt (tag, vars, expr) =
-      iConcat [ iStr $ show tag
-              , iStr $ concatMap ((:) ' ') vars
-              , iStr " -> ", pprExpr expr prec
-              ]
 pprExpr (ELam vars expr) prec
   = iConcat [ iStr "\\", iStr $ intercalate " " vars
             , iStr " .", iNewline, iStr " "
             , iIndent (pprExpr expr prec)
             ]
+
+pprDefn :: (Name, CoreExpr) -> Iseq
+pprDefn (name, expr)
+  = iConcat [iStr name, iStr " = ", pprExpr expr prec]
+
+pprAlt :: Alter Name -> Iseq
+pprAlt (tag, vars, expr) =
+  iConcat [ iStr $ show tag
+          , iStr $ concatMap ((:) ' ') vars
+          , iStr " -> ", pprExpr expr prec
+          ]
 
 -- Helper.
 mapSep :: (a -> Iseq) -> [a] -> Iseq
