@@ -3,7 +3,7 @@ version:             0.1.0.0
 synopsis:            "Implementing Functional Languages: a tutorial" in Haskell
 homepage:            https://github.com/nkaretnikov/ifl-haskell
 license:             PublicDomain
-license-file:        LICENSE
+license-file:        LICENSE.md
 author:              Nikita Karetnikov
 maintainer:          nikita@karetnikov.org
 category:            Language
