@@ -24,14 +24,19 @@ clex (c:cs) n
   | isDigit c = let numToken = c : takeWhile isDigit cs
                     rest     = dropWhile isDigit cs
                 in (n, numToken) : clex rest n
-  | isAlpha c = let isIdChar c = isAlpha c || isDigit c || (c == '_')
-                    varToken   = c : takeWhile isIdChar cs
+  | isAlpha c = let varToken   = c : takeWhile isIdChar cs
                     rest       = dropWhile isIdChar cs
                 in (n, varToken) : clex rest n
   | otherwise = (n, [c]) : clex cs n
-    where
-      isNewline c = c == '\n'
-      isSpace c   = c `elem` " \t"
+
+isIdChar :: Char -> Bool
+isIdChar c = isAlpha c || isDigit c || (c == '_')
+
+isNewline :: Char -> Bool
+isNewline c = c == '\n'
+
+isSpace :: Char -> Bool
+isSpace c = c `elem` " \t"
 
 syntax :: [Token] -> CoreProgram
 syntax = takeScs . pProgram
@@ -115,40 +120,50 @@ assembleOp :: CoreExpr -> PartialExpr -> CoreExpr
 assembleOp e1 NoOp = e1
 assembleOp e1 (FoundOp op e2) = EAp (EAp (EVar op) e1) e2
 
+pDefns :: Parser [(String, CoreExpr)]
 pDefns = pOneOrMore pDefn
   where
     pDefn = pThen3 (\v _ e -> (v,e)) pVar (pLit "=") pExpr
 
+pELet :: Parser (Expr Name)
 pELet    = pThen4 mkELet (pLit "let") pDefns (pLit "in") pExpr
   where
     mkELet _ ds _ e = ELet nonRecursive ds e
 
+pELetrec :: Parser (Expr Name)
 pELetrec = pThen4 mkELetrec (pLit "letrec") pDefns (pLit "in") pExpr
   where
     mkELetrec _ ds _ e = ELet recursive ds e
 
-pECase   = pThen4 mkECase (pLit "case") pExpr (pLit "of") pAlts
+pECase :: Parser (Expr Name)
+pECase   = pThen4 mkECase (pLit "case") pExpr (pLit "of") pAlts'
   where
     mkECase _ e _ as = ECase e as
-    pAlts = pOneOrMoreWithSep pAlt (pLit ";")
-    pAlt  = pThen4 mkAlt (pThen3 (\_ n _ -> n) (pLit "<") pNum (pLit ">"))
-                         (pZeroOrMore pVar)
-                         (pLit "->")
-                         pExpr
+    pAlts' = pOneOrMoreWithSep pAlt' (pLit ";")
+    pAlt'  = pThen4 mkAlt (pThen3 (\_ n _ -> n) (pLit "<") pNum (pLit ">"))
+                          (pZeroOrMore pVar)
+                          (pLit "->")
+                          pExpr
     mkAlt n vs _ e = (n,vs,e)
 
+pELam :: Parser (Expr String)
 pELam    = pThen4 mkELam (pLit "\\") (pOneOrMore pVar) (pLit ".") pExpr
   where
     mkELam _ vs _ e = ELam vs e
 
+pAExpr :: Parser (Expr Name)
 pAExpr   = pEVar `pAlt` pENum `pAlt` pEConstr `pAlt` pPExpr
 
+pEVar :: Parser (Expr a)
 pEVar    = pApply pVar EVar
 
+pENum :: Parser (Expr a)
 pENum    = pApply pNum ENum
 
+pEConstr :: Parser (Expr a)
 pEConstr = pThen EConstr pNum pNum
 
+pPExpr :: Parser CoreExpr
 pPExpr   = pThen3 (\_ e _ -> e) (pLit "(") pExpr (pLit ")")
 
 parse :: String -> CoreProgram
@@ -242,7 +257,7 @@ pOneOrMore p = pThen (:) p $ pZeroOrMore p
 pApply :: Parser a -> (a -> b) -> Parser b
 pApply p f ts = case p ts of
   Left e -> Left e
-  Right (v, ts) -> Right (f v, ts)
+  Right (v, ts') -> Right (f v, ts')
 
 pOneOrMoreWithSep :: Parser a -> Parser b -> Parser [a]
 pOneOrMoreWithSep p1 p2 = pThen (:) p1 (pZeroOrMore $ pThen (flip const) p2 p1)

@@ -4,6 +4,7 @@ import Test.HUnit (Test(..), (~=?))
 import Core.Parser
 import Core.Language
 
+tests :: Test
 tests = TestList $
   [ TestLabel "Exercise 1.9: Ignore comments" $
       [(1,"foo"), (2,"bar")] ~=? (clex "foo||a comment\nbar" 1)
@@ -212,7 +213,7 @@ pGreeting = pThen (,) pHelloOrGoodbye pVar
 pGreeting3 :: Parser (String, String)
 pGreeting3 = pThen3 combine pHelloOrGoodbye pVar (pLit "!")
   where
-    combine hg name exclamation = (hg, name)
+    combine hg name _ = (hg, name)
 
 pGreetings :: Parser [(String, String)]
 pGreetings = pZeroOrMore pGreeting
