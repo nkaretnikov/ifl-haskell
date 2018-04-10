@@ -1,4 +1,4 @@
-.PHONY: nix_files shell build test clean
+.PHONY: nix_files shell build test clean tags
 
 # Generate .nix files from a .cabal file.
 nix_files:
@@ -17,3 +17,6 @@ test:
 
 clean:
 	cabal clean
+
+tags:
+	hasktags -c src
