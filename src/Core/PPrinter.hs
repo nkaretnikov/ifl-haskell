@@ -64,7 +64,7 @@ flatten col ((IIndent x, _) : xs)
 -- Pretty-printing.
 
 iConcat :: [Iseq] -> Iseq
-iConcat = foldl iAppend iNil
+iConcat = foldl iAppend iNil  -- XXX: use foldl'?
 
 iInterleave :: Iseq -> [Iseq] -> Iseq
 iInterleave _   []     = iNil

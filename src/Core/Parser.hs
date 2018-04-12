@@ -114,7 +114,7 @@ pExpr5 :: Parser CoreExpr
 pExpr5 = pThen assembleOp pExpr6 pExpr5c
 
 pExpr6 :: Parser CoreExpr
-pExpr6 = pApply (pOneOrMore pAExpr) (foldl1 EAp)
+pExpr6 = pApply (pOneOrMore pAExpr) (foldl1 EAp)  -- XXX: use foldl'?
 
 assembleOp :: CoreExpr -> PartialExpr -> CoreExpr
 assembleOp e1 NoOp = e1
