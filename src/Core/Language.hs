@@ -13,6 +13,7 @@ data Expr a = EVar String            -- variables
                 [Alter a]              -- alternatives
             | ELam [a] (Expr a)      -- lambda abstractions
             deriving (Show, Eq)
+
 type Name     = String
 type CoreExpr = Expr Name
 
@@ -22,10 +23,10 @@ recursive    = True
 nonRecursive = False
 
 bindersOf :: [(a,b)] -> [a]
-bindersOf defns = [name | (name, _) <- defns]
+bindersOf defns = map fst defns
 
 rhssOf :: [(a,b)] -> [b]
-rhssOf defns = [rhs | (_, rhs) <- defns]
+rhssOf defns = map snd defns
 
 type Alter a = ( Int            -- tag
                , [a]            -- list of bound variables
